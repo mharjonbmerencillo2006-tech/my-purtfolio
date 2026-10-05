@@ -1,73 +1,27 @@
+```html
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="My personal portfolio">
-  <title>My Portfolio</title>
-  <link rel="stylesheet" href="style.css">
+    <title>Grading System</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <nav class="topbar">
-    <span class="logo">My Portfolio</span>
-    <button id="theme-btn" aria-label="Toggle dark mode">🌙</button>
-  </nav>
+    <div class="container">
+        <h1>Student Grading System</h1>
 
-  <header class="profile">
-    <img class="avatar" src="https://picsum.photos/id/64/200" alt="Profile picture">
+        <input type="text" id="name" placeholder="Student Name">
 
-    <div class="info">
-      <div class="name-row">
-        <h1>yourname</h1>
-        <button class="btn primary" id="follow-btn">Follow</button>
-        <a class="btn" href="mailto:you@example.com">Message</a>
-      </div>
+        <input type="number" id="html" placeholder="HTML Grade">
+        <input type="number" id="css" placeholder="CSS Grade">
+        <input type="number" id="javascript" placeholder="JavaScript Grade">
 
-      <div class="stats">
-        <span><b id="project-count">0</b> projects</span>
-        <span><b id="followers">1200</b> followers</span>
-        <span><b>180</b> following</span>
-      </div>
+        <button onclick="calculateGrade()">Calculate</button>
 
-      <p><b>Your Full Name</b><br>Designer &amp; Developer<br>Cebu City, PH</p>
+        <div id="result"></div>
     </div>
-  </header>
 
-  <div class="tabs" id="tabs">
-    <button class="active" data-filter="All">All</button>
-    <button data-filter="Web">Web</button>
-    <button data-filter="Design">Design</button>
-    <button data-filter="App">Apps</button>
-  </div>
-
-  <main class="grid" id="grid"></main>
-
-  <footer>
-    <p>&copy; <span id="year"></span> Your Name. All rights reserved.</p>
-  </footer>
-
-  <div class="modal" id="modal">
-    <button class="nav-btn close" id="close-btn" aria-label="Close">✕</button>
-    <button class="nav-btn prev" id="prev-btn" aria-label="Previous">‹</button>
-    <button class="nav-btn next" id="next-btn" aria-label="Next">›</button>
-
-    <div class="modal-box">
-      <div class="img-wrap">
-        <img id="modal-img" src="" alt="">
-        <span class="big-heart" id="big-heart">♥</span>
-      </div>
-      <div class="modal-info">
-        <div class="modal-top">
-          <h2 id="modal-title"></h2>
-          <button class="like" id="like-btn" aria-label="Like">♡</button>
-        </div>
-        <p id="modal-desc"></p>
-        <small id="modal-count"></small>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
+```
