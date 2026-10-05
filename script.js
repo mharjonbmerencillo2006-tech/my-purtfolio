@@ -1,221 +1,101 @@
-const PASSING = 75; // lowest passing average
+const SUBJECTS = ["Math", "Science", "English", "Programming"];
+const PASSING = 75;
 
-// ---------- Elements ----------
-const form = document.getElementById("form");
-const errorText = document.getElementById("error");
-const tbody = document.getElementById("tbody");
-const empty = document.getElementById("empty");
-const searchInput = document.getElementById("search");
-const sortSelect = document.getElementById("sort");
-const clearBtn = document.getElementById("clear-btn");
-const themeBtn = document.getElementById("theme-btn");
+const $ = id => document.getElementById(id);
+const esc = t => t.replace(/[&<>"]/g, c => "&#" + c.charCodeAt(0) + ";");
+const avg = s => s.grades.reduce((a, b) => a + b, 0) / s.grades.length;
+const letter = a => a >= 90 ? "A" : a >= 85 ? "B" : a >= 80 ? "C" : a >= 75 ? "D" : "F";
 
-// ---------- Saving data in the browser ----------
-function load(key, fallback) {
-  try {
-    const value = JSON.parse(localStorage.getItem(key));
-    return value === null ? fallback : value;
-  } catch (error) {
-    return fallback;
-  }
-}
+let students = JSON.parse(localStorage.gradingStudents || "[]");
+let dark = localStorage.gradingDark === "1";
 
-function save(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    // Saving failed, everything still works until you refresh
-  }
-}
+const save = () => localStorage.gradingStudents = JSON.stringify(students);
 
-let students = load("students", []);
-let theme = load("theme", null);
+// Build the form and table header from the SUBJECTS list
+$("form").innerHTML =
+  '<input id="name" placeholder="Student name" required>' +
+  SUBJECTS.map(s => `<input type="number" min="0" max="100" placeholder="${s}" required>`).join("") +
+  "<button>Add</button>";
 
-// ---------- Grade calculations ----------
-function getAverage(student) {
-  const total = student.math + student.science + student.english + student.programming;
-  return Math.round((total / 4) * 100) / 100;
-}
+$("head").innerHTML =
+  "<tr><th>Name</th>" + SUBJECTS.map(s => `<th>${s}</th>`).join("") +
+  "<th>Average</th><th>Grade</th><th>Remark</th><th></th></tr>";
 
-function getLetter(average) {
-  if (average >= 90) return "A";
-  if (average >= 85) return "B";
-  if (average >= 80) return "C";
-  if (average >= 75) return "D";
-  return "F";
-}
-
-// ---------- Dark mode ----------
-if (!theme) {
-  theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
-function applyTheme() {
-  document.documentElement.setAttribute("data-theme", theme);
-  themeBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-}
-
-themeBtn.addEventListener("click", function () {
-  theme = theme === "dark" ? "light" : "dark";
-  save("theme", theme);
-  applyTheme();
-});
-
-// ---------- Add a student ----------
-form.addEventListener("submit", function (event) {
-  event.preventDefault();
-
-  const student = {
-    id: Date.now(),
-    name: document.getElementById("name").value.trim(),
-    math: Number(document.getElementById("math").value),
-    science: Number(document.getElementById("science").value),
-    english: Number(document.getElementById("english").value),
-    programming: Number(document.getElementById("programming").value)
-  };
-
-  // Check the grades are between 0 and 100
-  const grades = [student.math, student.science, student.english, student.programming];
-  const invalid = grades.some(function (grade) {
-    return grade < 0 || grade > 100;
-  });
-
-  if (student.name === "") {
-    errorText.textContent = "Please enter a name.";
-    return;
-  }
-
-  if (invalid) {
-    errorText.textContent = "Grades must be from 0 to 100.";
-    return;
-  }
-
-  errorText.textContent = "";
-  students.push(student);
-  save("students", students);
-  form.reset();
+// Add a student
+$("form").onsubmit = e => {
+  e.preventDefault();
+  const grades = [...$("form").querySelectorAll("input[type=number]")].map(i => Number(i.value));
+  students.push({ id: Date.now(), name: $("name").value.trim(), grades });
+  save();
+  e.target.reset();
   render();
-});
+};
 
-// ---------- Delete and clear ----------
-function deleteStudent(id) {
-  students = students.filter(function (student) {
-    return student.id !== id;
-  });
-  save("students", students);
+function remove(id) {
+  students = students.filter(s => s.id !== id);
+  save();
   render();
 }
 
-clearBtn.addEventListener("click", function () {
-  if (students.length === 0) return;
-
-  if (confirm("Delete all students?")) {
+$("clear").onclick = () => {
+  if (students.length && confirm("Delete all students?")) {
     students = [];
-    save("students", students);
+    save();
     render();
   }
-});
-
-// ---------- Table ----------
-function makeCell(text, className) {
-  const td = document.createElement("td");
-  td.textContent = text; // textContent keeps names safe
-  if (className) td.className = className;
-  return td;
-}
+};
 
 function render() {
-  // Search
-  const text = searchInput.value.toLowerCase();
-  const list = students.filter(function (student) {
-    return student.name.toLowerCase().includes(text);
-  });
+  const q = $("search").value.toLowerCase();
+  const sort = $("sort").value;
+  const list = students.filter(s => s.name.toLowerCase().includes(q));
 
-  // Sort
-  const sort = sortSelect.value;
-  if (sort === "name") {
-    list.sort(function (a, b) { return a.name.localeCompare(b.name); });
-  } else if (sort === "high") {
-    list.sort(function (a, b) { return getAverage(b) - getAverage(a); });
-  } else if (sort === "low") {
-    list.sort(function (a, b) { return getAverage(a) - getAverage(b); });
-  } else {
-    list.reverse(); // newest first
-  }
+  if (sort === "name") list.sort((a, b) => a.name.localeCompare(b.name));
+  else if (sort === "high") list.sort((a, b) => avg(b) - avg(a));
+  else if (sort === "low") list.sort((a, b) => avg(a) - avg(b));
+  else list.reverse();
 
-  // Draw rows
-  tbody.innerHTML = "";
+  $("body").innerHTML = list.map(s => {
+    const a = avg(s);
+    const ok = a >= PASSING;
+    return `<tr><td>${esc(s.name)}</td>` +
+      s.grades.map(g => `<td class="${g < PASSING ? "low" : ""}">${g}</td>`).join("") +
+      `<td><b>${a.toFixed(2)}</b></td><td>${letter(a)}</td>` +
+      `<td><span class="badge ${ok ? "pass" : "fail"}">${ok ? "Passed" : "Failed"}</span></td>` +
+      `<td><button onclick="remove(${s.id})">🗑</button></td></tr>`;
+  }).join("");
 
-  list.forEach(function (student) {
-    const average = getAverage(student);
-    const passed = average >= PASSING;
-    const row = document.createElement("tr");
+  $("empty").hidden = list.length > 0;
 
-    row.appendChild(makeCell(student.name));
+  // Summary cards
+  const n = students.length;
+  const avgs = students.map(avg);
+  const passed = avgs.filter(a => a >= PASSING).length;
+  const top = n ? students[avgs.indexOf(Math.max(...avgs))].name : "-";
+  const classAvg = n ? (avgs.reduce((a, b) => a + b, 0) / n).toFixed(2) : 0;
 
-    ["math", "science", "english", "programming"].forEach(function (subject) {
-      const grade = student[subject];
-      row.appendChild(makeCell(grade, grade < PASSING ? "low" : ""));
-    });
-
-    row.appendChild(makeCell(average.toFixed(2), "avg"));
-    row.appendChild(makeCell(getLetter(average)));
-
-    const remarkCell = document.createElement("td");
-    const badge = document.createElement("span");
-    badge.className = "badge " + (passed ? "passed" : "failed");
-    badge.textContent = passed ? "Passed" : "Failed";
-    remarkCell.appendChild(badge);
-    row.appendChild(remarkCell);
-
-    const deleteCell = document.createElement("td");
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "delete";
-    deleteBtn.textContent = "🗑";
-    deleteBtn.title = "Delete";
-    deleteBtn.addEventListener("click", function () {
-      deleteStudent(student.id);
-    });
-    deleteCell.appendChild(deleteBtn);
-    row.appendChild(deleteCell);
-
-    tbody.appendChild(row);
-  });
-
-  empty.style.display = list.length === 0 ? "block" : "none";
-  updateSummary();
+  $("stats").innerHTML = [
+    ["Students", n],
+    ["Class Average", classAvg],
+    ["Top Student", esc(top)],
+    ["Passed / Failed", passed + " / " + (n - passed)]
+  ].map(([label, value]) => `<div><small>${label}</small><b>${value}</b></div>`).join("");
 }
 
-// ---------- Summary cards ----------
-function updateSummary() {
-  document.getElementById("total").textContent = students.length;
-
-  if (students.length === 0) {
-    document.getElementById("class-avg").textContent = "0";
-    document.getElementById("top").textContent = "-";
-    document.getElementById("pass-fail").textContent = "0 / 0";
-    return;
-  }
-
-  let sum = 0;
-  let passed = 0;
-  let best = students[0];
-
-  students.forEach(function (student) {
-    const average = getAverage(student);
-    sum += average;
-    if (average >= PASSING) passed++;
-    if (average > getAverage(best)) best = student;
-  });
-
-  document.getElementById("class-avg").textContent = (sum / students.length).toFixed(2);
-  document.getElementById("top").textContent = best.name;
-  document.getElementById("pass-fail").textContent = passed + " / " + (students.length - passed);
+// Dark mode
+function theme() {
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  $("theme").textContent = dark ? "☀️" : "🌙";
 }
 
-// ---------- Start ----------
-searchInput.addEventListener("input", render);
-sortSelect.addEventListener("change", render);
+$("theme").onclick = () => {
+  dark = !dark;
+  localStorage.gradingDark = dark ? 1 : 0;
+  theme();
+};
 
-applyTheme();
+$("search").oninput = render;
+$("sort").onchange = render;
+
+theme();
 render();
