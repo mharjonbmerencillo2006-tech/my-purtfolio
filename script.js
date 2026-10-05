@@ -1,45 +1,53 @@
-const SUBJECTS = ["Math", "Science", "English", "Programming"];
-const PASSING = 75;
+const CATEGORIES = ["Salary", "Freelance", "Business", "Gift", "Other"];
 
 const $ = id => document.getElementById(id);
 const esc = t => t.replace(/[&<>"]/g, c => "&#" + c.charCodeAt(0) + ";");
-const avg = s => s.grades.reduce((a, b) => a + b, 0) / s.grades.length;
-const letter = a => a >= 90 ? "A" : a >= 85 ? "B" : a >= 80 ? "C" : a >= 75 ? "D" : "F";
+const peso = n => "₱" + n.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const today = () => new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
 
-let students = JSON.parse(localStorage.gradingStudents || "[]");
-let dark = localStorage.gradingDark === "1";
+let items = JSON.parse(localStorage.incomeItems || "[]");
+let dark = localStorage.incomeDark === "1";
 
-const save = () => localStorage.gradingStudents = JSON.stringify(students);
+const save = () => localStorage.incomeItems = JSON.stringify(items);
 
-// Build the form and table header from the SUBJECTS list
+// Build the form
 $("form").innerHTML =
-  '<input id="name" placeholder="Student name" required>' +
-  SUBJECTS.map(s => `<input type="number" min="0" max="100" placeholder="${s}" required>`).join("") +
+  '<input id="source" placeholder="Source (e.g. Client A)" required>' +
+  '<input id="amount" type="number" min="0.01" step="0.01" placeholder="Amount" required>' +
+  '<select id="category">' + CATEGORIES.map(c => `<option>${c}</option>`).join("") + "</select>" +
+  '<input id="date" type="date" required>' +
   "<button>Add</button>";
+$("date").value = today();
 
-$("head").innerHTML =
-  "<tr><th>Name</th>" + SUBJECTS.map(s => `<th>${s}</th>`).join("") +
-  "<th>Average</th><th>Grade</th><th>Remark</th><th></th></tr>";
-
-// Add a student
+// Add income
 $("form").onsubmit = e => {
   e.preventDefault();
-  const grades = [...$("form").querySelectorAll("input[type=number]")].map(i => Number(i.value));
-  students.push({ id: Date.now(), name: $("name").value.trim(), grades });
+  items.push({
+    id: Date.now(),
+    source: $("source").value.trim(),
+    amount: Number($("amount").value),
+    category: $("category").value,
+    date: $("date").value
+  });
   save();
   e.target.reset();
+  $("date").value = today();
   render();
 };
 
-function remove(id) {
-  students = students.filter(s => s.id !== id);
+// Delete one
+$("body").onclick = e => {
+  const id = Number(e.target.dataset.id);
+  if (!id) return;
+  items = items.filter(i => i.id !== id);
   save();
   render();
-}
+};
 
+// Clear all
 $("clear").onclick = () => {
-  if (students.length && confirm("Delete all students?")) {
-    students = [];
+  if (items.length && confirm("Delete all income?")) {
+    items = [];
     save();
     render();
   }
@@ -48,37 +56,33 @@ $("clear").onclick = () => {
 function render() {
   const q = $("search").value.toLowerCase();
   const sort = $("sort").value;
-  const list = students.filter(s => s.name.toLowerCase().includes(q));
+  const list = items.filter(i => i.source.toLowerCase().includes(q));
 
-  if (sort === "name") list.sort((a, b) => a.name.localeCompare(b.name));
-  else if (sort === "high") list.sort((a, b) => avg(b) - avg(a));
-  else if (sort === "low") list.sort((a, b) => avg(a) - avg(b));
-  else list.reverse();
+  if (sort === "high") list.sort((a, b) => b.amount - a.amount);
+  else if (sort === "low") list.sort((a, b) => a.amount - b.amount);
+  else list.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 
-  $("body").innerHTML = list.map(s => {
-    const a = avg(s);
-    const ok = a >= PASSING;
-    return `<tr><td>${esc(s.name)}</td>` +
-      s.grades.map(g => `<td class="${g < PASSING ? "low" : ""}">${g}</td>`).join("") +
-      `<td><b>${a.toFixed(2)}</b></td><td>${letter(a)}</td>` +
-      `<td><span class="badge ${ok ? "pass" : "fail"}">${ok ? "Passed" : "Failed"}</span></td>` +
-      `<td><button onclick="remove(${s.id})">🗑</button></td></tr>`;
-  }).join("");
+  $("body").innerHTML = list.map(i =>
+    `<tr><td>${esc(i.source)}</td><td>${i.category}</td><td>${i.date}</td>` +
+    `<td>${peso(i.amount)}</td><td><button data-id="${i.id}">🗑</button></td></tr>`
+  ).join("");
 
   $("empty").hidden = list.length > 0;
 
   // Summary cards
-  const n = students.length;
-  const avgs = students.map(avg);
-  const passed = avgs.filter(a => a >= PASSING).length;
-  const top = n ? students[avgs.indexOf(Math.max(...avgs))].name : "-";
-  const classAvg = n ? (avgs.reduce((a, b) => a + b, 0) / n).toFixed(2) : 0;
+  const total = items.reduce((sum, i) => sum + i.amount, 0);
+  const month = items.filter(i => i.date.slice(0, 7) === today().slice(0, 7))
+                     .reduce((sum, i) => sum + i.amount, 0);
+
+  const byCategory = {};
+  items.forEach(i => byCategory[i.category] = (byCategory[i.category] || 0) + i.amount);
+  const top = Object.keys(byCategory).sort((a, b) => byCategory[b] - byCategory[a])[0] || "-";
 
   $("stats").innerHTML = [
-    ["Students", n],
-    ["Class Average", classAvg],
-    ["Top Student", esc(top)],
-    ["Passed / Failed", passed + " / " + (n - passed)]
+    ["Total Income", peso(total)],
+    ["This Month", peso(month)],
+    ["Average", peso(items.length ? total / items.length : 0)],
+    ["Top Category", top]
   ].map(([label, value]) => `<div><small>${label}</small><b>${value}</b></div>`).join("");
 }
 
@@ -90,7 +94,7 @@ function theme() {
 
 $("theme").onclick = () => {
   dark = !dark;
-  localStorage.gradingDark = dark ? 1 : 0;
+  localStorage.incomeDark = dark ? 1 : 0;
   theme();
 };
 
