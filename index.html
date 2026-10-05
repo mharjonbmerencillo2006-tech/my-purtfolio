@@ -1,27 +1,76 @@
-```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Grading System</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grading System</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="container">
-        <h1>Student Grading System</h1>
+  <nav class="topbar">
+    <span class="logo">Grading System</span>
+    <button id="theme-btn" aria-label="Toggle dark mode">🌙</button>
+  </nav>
 
-        <input type="text" id="name" placeholder="Student Name">
+  <main class="container">
 
-        <input type="number" id="html" placeholder="HTML Grade">
-        <input type="number" id="css" placeholder="CSS Grade">
-        <input type="number" id="javascript" placeholder="JavaScript Grade">
+    <section class="summary">
+      <div class="stat"><small>Students</small><b id="total">0</b></div>
+      <div class="stat"><small>Class Average</small><b id="class-avg">0</b></div>
+      <div class="stat"><small>Top Student</small><b id="top">-</b></div>
+      <div class="stat"><small>Passed / Failed</small><b id="pass-fail">0 / 0</b></div>
+    </section>
 
-        <button onclick="calculateGrade()">Calculate</button>
+    <section class="card">
+      <h2>Add Student</h2>
+      <form id="form">
+        <input type="text" id="name" placeholder="Student name" required>
+        <input type="number" id="math" placeholder="Math" min="0" max="100" required>
+        <input type="number" id="science" placeholder="Science" min="0" max="100" required>
+        <input type="number" id="english" placeholder="English" min="0" max="100" required>
+        <input type="number" id="programming" placeholder="Programming" min="0" max="100" required>
+        <button type="submit" class="btn primary">Add</button>
+      </form>
+      <p class="error" id="error"></p>
+    </section>
 
-        <div id="result"></div>
-    </div>
+    <section class="card">
+      <div class="toolbar">
+        <input type="text" id="search" placeholder="Search student...">
+        <select id="sort">
+          <option value="newest">Newest first</option>
+          <option value="name">Name A-Z</option>
+          <option value="high">Highest average</option>
+          <option value="low">Lowest average</option>
+        </select>
+        <button class="btn danger" id="clear-btn">Clear All</button>
+      </div>
 
-    <script src="script.js"></script>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Math</th>
+              <th>Science</th>
+              <th>English</th>
+              <th>Programming</th>
+              <th>Average</th>
+              <th>Grade</th>
+              <th>Remark</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <p class="empty" id="empty">No students yet. Add one above.</p>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
-```
