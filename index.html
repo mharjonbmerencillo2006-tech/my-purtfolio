@@ -3,32 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Grading System</title>
+  <title>Income Tracker</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav><b>Grading System</b><button id="theme">🌙</button></nav>
+  <nav><b>Income Tracker</b><button id="theme">🌙</button></nav>
   <main>
     <section class="stats" id="stats"></section>
     <form id="form"></form>
     <div class="bar">
-      <input id="search" placeholder="Search student...">
+      <input id="search" placeholder="Search income...">
       <select id="sort">
         <option value="new">Newest first</option>
-        <option value="name">Name A-Z</option>
-        <option value="high">Highest average</option>
-        <option value="low">Lowest average</option>
+        <option value="high">Highest amount</option>
+        <option value="low">Lowest amount</option>
       </select>
       <button id="clear" class="red">Clear All</button>
     </div>
     <div class="wrap">
       <table>
-        <thead id="head"></thead>
+        <thead><tr><th>Source</th><th>Category</th><th>Date</th><th>Amount</th><th></th></tr></thead>
         <tbody id="body"></tbody>
       </table>
     </div>
-    <p id="empty">No students yet.</p>
+    <p id="empty">No income yet.</p>
   </main>
   <script src="script.js"></script>
 </body>
-</html>
