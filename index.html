@@ -7,70 +7,28 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <nav class="topbar">
-    <span class="logo">Grading System</span>
-    <button id="theme-btn" aria-label="Toggle dark mode">🌙</button>
-  </nav>
-
-  <main class="container">
-
-    <section class="summary">
-      <div class="stat"><small>Students</small><b id="total">0</b></div>
-      <div class="stat"><small>Class Average</small><b id="class-avg">0</b></div>
-      <div class="stat"><small>Top Student</small><b id="top">-</b></div>
-      <div class="stat"><small>Passed / Failed</small><b id="pass-fail">0 / 0</b></div>
-    </section>
-
-    <section class="card">
-      <h2>Add Student</h2>
-      <form id="form">
-        <input type="text" id="name" placeholder="Student name" required>
-        <input type="number" id="math" placeholder="Math" min="0" max="100" required>
-        <input type="number" id="science" placeholder="Science" min="0" max="100" required>
-        <input type="number" id="english" placeholder="English" min="0" max="100" required>
-        <input type="number" id="programming" placeholder="Programming" min="0" max="100" required>
-        <button type="submit" class="btn primary">Add</button>
-      </form>
-      <p class="error" id="error"></p>
-    </section>
-
-    <section class="card">
-      <div class="toolbar">
-        <input type="text" id="search" placeholder="Search student...">
-        <select id="sort">
-          <option value="newest">Newest first</option>
-          <option value="name">Name A-Z</option>
-          <option value="high">Highest average</option>
-          <option value="low">Lowest average</option>
-        </select>
-        <button class="btn danger" id="clear-btn">Clear All</button>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Math</th>
-              <th>Science</th>
-              <th>English</th>
-              <th>Programming</th>
-              <th>Average</th>
-              <th>Grade</th>
-              <th>Remark</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-
-      <p class="empty" id="empty">No students yet. Add one above.</p>
-    </section>
-
+  <nav><b>Grading System</b><button id="theme">🌙</button></nav>
+  <main>
+    <section class="stats" id="stats"></section>
+    <form id="form"></form>
+    <div class="bar">
+      <input id="search" placeholder="Search student...">
+      <select id="sort">
+        <option value="new">Newest first</option>
+        <option value="name">Name A-Z</option>
+        <option value="high">Highest average</option>
+        <option value="low">Lowest average</option>
+      </select>
+      <button id="clear" class="red">Clear All</button>
+    </div>
+    <div class="wrap">
+      <table>
+        <thead id="head"></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+    <p id="empty">No students yet.</p>
   </main>
-
   <script src="script.js"></script>
 </body>
 </html>
